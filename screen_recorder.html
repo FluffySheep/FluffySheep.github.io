@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Screen Recorder</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+      padding: 48px;
+      width: 90%;
+      max-width: 480px;
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #6b7280;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .main-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .record-button {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 16px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    }
+
+    .record-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    .record-button:active {
+      transform: translateY(0);
+    }
+
+    .record-button.recording {
+      background: #ef4444;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+      animation: recordingPulse 2s infinite;
+    }
+
+    .record-button.recording:hover {
+      box-shadow: 0 6px 24px rgba(239, 68, 68, 0.4);
+    }
+
+    @keyframes recordingPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .record-button-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    .timer {
+      font-size: 32px;
+      font-weight: 300;
+      color: #ef4444;
+      margin: 24px 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', 'Monaco', 'Consolas', monospace;
+      letter-spacing: 1px;
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.3s ease;
+    }
+
+    .timer.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .status-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .status-icon {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .status-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b5563;
+    }
+
+    .status-card.ready {
+      background: #FFF9C4;
+      border-color: #F9A825;
+    }
+
+    .status-card.ready .status-icon {
+      color: #F9A825;
+    }
+
+    .status-card.ready .status-text {
+      color: #F9A825;
+    }
+
+    .status-card.recording {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .status-card.recording .status-icon {
+      color: #ef4444;
+    }
+
+    .status-card.recording .status-text {
+      color: #ef4444;
+    }
+
+    .status-card.done {
+      background: #C8E6C9;
+      border-color: #2E7D32;
+    }
+
+    .status-card.done .status-icon {
+      color: #2E7D32;
+    }
+
+    .status-card.done .status-text {
+      color: #2E7D32;
+    }
+
+    .status-card.error {
+      background: #fffbeb;
+      border-color: #fed7aa;
+    }
+
+    .status-card.error .status-icon {
+      color: #f59e0b;
+    }
+
+    .status-card.error .status-text {
+      color: #f59e0b;
+    }
+
+    .download-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: all 0.3s ease;
+    }
+
+    .download-section.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .download-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #1f2937;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .download-button:hover {
+      background: #111827;
+      transform: translateY(-1px);
+    }
+
+    .download-button:active {
+      transform: translateY(0);
+    }
+
+    .permissions-hint {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+
+    .recording-indicator {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 12px;
+      height: 12px;
+      background: #ef4444;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .recording-indicator.active {
+      opacity: 1;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      50% {
+        opacity: 1;
+      }
+
+      51%,
+      100% {
+        opacity: 0.3;
+      }
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .feature-item {
+      text-align: center;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+
+    .feature-item.active {
+      opacity: 1;
+    }
+
+    .feature-icon {
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #6b7280;
+    }
+
+    .feature-text {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 640px) {
+      .container {
+        padding: 32px 24px;
+        margin: 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .record-button {
+        width: 72px;
+        height: 72px;
+        font-size: 20px;
+      }
+
+      .timer {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="recording-indicator" id="recordingIndicator"></div>
+
+    <h1>Screen Recorder For Google Chrome</h1>
+    <p class="subtitle">Code generated by Claude.ai</p>
+
+    <div class="feature-grid">
+      <div class="feature-item active">
+        <div class="feature-icon">🎥</div>
+        <div class="feature-text">1. Start Recording</div>
+      </div>
+      <div class="feature-item active">
+        <div class="feature-icon">🛑</div>
+        <div class="feature-text">2. Stop Recording</div>
+      </div>
+      <div class="feature-item active">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text">3. Download</div>
+      </div>
+    </div>
+
+    <div class="main-controls">
+      <button class="record-button" id="recordButton">
+        <span id="recordIcon">●</span>
+      </button>
+      <div class="record-button-text" id="recordButtonText">Click to start recording</div>
+    </div>
+
+    <div class="timer" id="timer">00:00</div>
+
+    <div class="status-card ready" id="statusCard">
+      <div class="status-icon" id="statusIcon">🎥</div>
+      <div class="status-text" id="statusText">Waiting for you to start recording...</div>
+    </div>
+
+    <div class="download-section" id="downloadSection">
+      <a href="#" class="download-button" id="downloadButton">
+        <span>⬇</span>
+        Download Recording
+      </a>
+    </div>
+
+    <div class="permissions-hint">
+      Your browser will ask for screen sharing permission when you start recording. You can also toggle the system audio
+      in the share screen pop-up.
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let recordedChunks = [];
+    let stream;
+    let startTime;
+    let timerInterval;
+    let isRecording = false;
+
+    const recordButton = document.getElementById('recordButton');
+    const recordIcon = document.getElementById('recordIcon');
+    const recordButtonText = document.getElementById('recordButtonText');
+    const statusCard = document.getElementById('statusCard');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusText = document.getElementById('statusText');
+    const timer = document.getElementById('timer');
+    const downloadSection = document.getElementById('downloadSection');
+    const downloadButton = document.getElementById('downloadButton');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+
+    // Update status
+    function updateStatus(type, icon, text) {
+      statusCard.className = `status-card ${type}`;
+      statusIcon.textContent = icon;
+      statusText.textContent = text;
+    }
+
+    // Start recording
+    recordButton.addEventListener('click', async () => {
+      if (!isRecording) {
+        try {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              mediaSource: 'screen',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              frameRate: { ideal: 30 }
+            },
+            audio: true
+          });
+
+          stream.getVideoTracks()[0].addEventListener('ended', () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+              stopRecording();
+            }
+          });
+
+          recordedChunks = [];
+          mediaRecorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm;codecs=vp9,opus'
+          });
+
+          mediaRecorder.addEventListener('dataavailable', e => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+            }
+          });
+
+          mediaRecorder.addEventListener('stop', () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `screen-recording-${timestamp}.webm`;
+
+            downloadButton.href = url;
+            downloadButton.download = filename;
+            downloadSection.classList.add('visible');
+
+            updateStatus('done', '✓', 'Finished recording! Click the download button.');
+
+            stream.getTracks().forEach(track => track.stop());
+            clearInterval(timerInterval);
+
+            // Reset UI
+            isRecording = false;
+            recordButton.classList.remove('recording');
+            recordIcon.textContent = '●';
+            recordButtonText.textContent = 'Click to start recording';
+            timer.classList.remove('visible');
+            recordingIndicator.classList.remove('active');
+          });
+
+          mediaRecorder.start();
+          startTime = Date.now();
+          isRecording = true;
+
+          // Update UI
+          recordButton.classList.add('recording');
+          recordIcon.textContent = '⏹';
+          recordButtonText.textContent = 'Click to stop recording';
+          updateStatus('recording', '⏺', 'Recording in progress...');
+          timer.classList.add('visible');
+          downloadSection.classList.remove('visible');
+          recordingIndicator.classList.add('active');
+
+          timerInterval = setInterval(updateTimer, 1000);
+
+        } catch (err) {
+          console.error('Error starting recording:', err);
+          updateStatus('error', '⚠', 'Failed to start recording. Please grant screen sharing permission.');
+        }
+      } else {
+        stopRecording();
+      }
+    });
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    }
+
+    function updateTimer() {
+      const elapsed = Date.now() - startTime;
+      const minutes = Math.floor(elapsed / 60000);
+      const seconds = Math.floor((elapsed % 60000) / 1000);
+      timer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Check browser support
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        updateStatus('error', '⚠', 'Screen capture not supported in this browser');
+        recordButton.disabled = true;
+        recordButton.style.opacity = '0.5';
+        recordButton.style.cursor = 'not-allowed';
+      }
+    });
+  </script>
+</body>
+
+</html>

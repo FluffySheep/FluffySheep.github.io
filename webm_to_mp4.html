@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebM to MP4 Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1a73e8;
+      --primary-hover: #1557b0;
+      --success-color: #0d652d;
+      --error-color: #c5221f;
+      --warning-color: #ea8600;
+      --surface-color: #ffffff;
+      --background-color: #f8f9fa;
+      --on-surface: #202124;
+      --on-surface-variant: #5f6368;
+      --outline: #dadce0;
+      --outline-variant: #e8eaed;
+      --shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+      --shadow-hover: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+      --border-radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background-color: var(--background-color);
+      color: var(--on-surface);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--surface-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 32px 32px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--outline-variant);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 400;
+      margin: 0 0 8px 0;
+      color: var(--on-surface);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--on-surface-variant);
+      margin: 0;
+    }
+
+    .content {
+      padding: 32px;
+    }
+
+    .warning {
+      background: #fef7e0;
+      border: 1px solid #fdd663;
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .warning .material-icons {
+      color: var(--warning-color);
+      font-size: 20px;
+      margin-top: 2px;
+    }
+
+    .warning-text {
+      flex: 1;
+      font-size: 14px;
+      color: #b06000;
+    }
+
+    .upload-area {
+      border: 2px dashed var(--outline);
+      border-radius: var(--border-radius);
+      padding: 48px 24px;
+      text-align: center;
+      margin-bottom: 24px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary-color);
+      background-color: #f8fbff;
+    }
+
+    .upload-area.dragover {
+      border-color: var(--primary-color);
+      background-color: #e8f0fe;
+      border-style: solid;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      color: var(--on-surface-variant);
+      margin-bottom: 16px;
+    }
+
+    .upload-text {
+      font-size: 16px;
+      color: var(--on-surface);
+      margin-bottom: 8px;
+    }
+
+    .upload-subtext {
+      font-size: 14px;
+      color: var(--on-surface-variant);
+      margin-bottom: 24px;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .btn {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      min-width: 64px;
+      height: 40px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .btn-primary:disabled {
+      background: var(--outline);
+      color: var(--on-surface-variant);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-outlined {
+      background: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--outline);
+    }
+
+    .btn-outlined:hover {
+      background: #f8fbff;
+      border-color: var(--primary-color);
+    }
+
+    .btn-success {
+      background: var(--success-color);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #0b5d26;
+    }
+
+    .convert-btn {
+      width: 100%;
+      margin-top: 24px;
+      height: 48px;
+      font-size: 16px;
+    }
+
+    .file-card {
+      display: none;
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      margin-bottom: 24px;
+      background: #fafbfc;
+    }
+
+    .file-card h3 {
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0 0 12px 0;
+      color: var(--on-surface);
+    }
+
+    .file-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-info-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--on-surface-variant);
+    }
+
+    .file-info-item .material-icons {
+      font-size: 16px;
+    }
+
+    .video-preview {
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .video-preview video {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+
+    .progress-container {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .progress-text {
+      font-size: 14px;
+      color: var(--on-surface-variant);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background-color: var(--outline-variant);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: var(--border-radius);
+      display: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status.success {
+      background: #e6f4ea;
+      color: var(--success-color);
+      border: 1px solid #ceead6;
+    }
+
+    .status.error {
+      background: #fce8e6;
+      color: var(--error-color);
+      border: 1px solid #f6aea9;
+    }
+
+    .status.info {
+      background: #e8f0fe;
+      color: var(--primary-color);
+      border: 1px solid #aecbfa;
+    }
+
+    .status .material-icons {
+      font-size: 18px;
+    }
+
+    .download-section {
+      display: none;
+      margin-top: 24px;
+      text-align: center;
+      padding: 24px;
+      background: #f8f9fa;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--outline-variant);
+    }
+
+    .download-section h3 {
+      font-size: 18px;
+      font-weight: 500;
+      margin: 0 0 16px 0;
+      color: var(--success-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 16px;
+      }
+      
+      .header {
+        padding: 24px 24px 16px;
+      }
+      
+      .content {
+        padding: 24px;
+      }
+      
+      .upload-area {
+        padding: 32px 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>WebM to MP4 Converter</h1>
+      <p class="subtitle">Code generated by Claude.ai</p>
+    </div>
+
+    <div class="content">
+      <div class="warning">
+        <span class="material-icons">info</span>
+        <div class="warning-text">
+          <strong>Browser Compatibility:</strong> This converter uses MediaRecorder API which works best in Chrome and Firefox. Large files may take longer to process.
+        </div>
+      </div>
+
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon material-icons">📁</div>
+        <div class="upload-text">Drop your WebM file here</div>
+        <div class="upload-subtext">or click to browse from your device</div>
+        <button class="btn btn-outlined" onclick="document.getElementById('fileInput').click()">
+          <span class="material-icons">folder_open</span>
+          Choose File
+        </button>
+        <input type="file" id="fileInput" accept=".webm,video/webm" />
+      </div>
+
+      <div class="file-card" id="fileCard">
+        <h3>File Details</h3>
+        <div class="file-info">
+          <div class="file-info-item">
+            <span class="material-icons">description</span>
+            <span id="fileName"></span>
+          </div>
+          <div class="file-info-item">
+            <span class="material-icons">storage</span>
+            <span id="fileSize"></span>
+          </div>
+        </div>
+        <div class="video-preview" id="videoPreview">
+          <video id="previewVideo" controls style="display: none;"></video>
+        </div>
+      </div>
+
+      <button class="btn btn-primary convert-btn" id="convertBtn" disabled>
+        <span class="material-icons">movie</span>
+        Convert to MP4
+      </button>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-text" id="progressText">
+          <span class="material-icons spinner">autorenew</span>
+          Preparing conversion...
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <div class="download-section" id="downloadSection">
+        <h3>
+          <span class="material-icons">check_circle</span>
+          Conversion Complete!
+        </h3>
+        <a class="btn btn-success" id="downloadBtn" href="#" download>
+          <span class="material-icons">download</span>
+          Download MP4
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileCard = document.getElementById('fileCard');
+    const convertBtn = document.getElementById('convertBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const status = document.getElementById('status');
+    const downloadSection = document.getElementById('downloadSection');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const previewVideo = document.getElementById('previewVideo');
+
+    // Check browser support
+    if (!MediaRecorder.isTypeSupported('video/mp4')) {
+      showStatus('Your browser does not support MP4 recording. Please try Chrome or Firefox.', 'error');
+    }
+
+    // Handle file selection
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        handleFile(file);
+      }
+    }
+
+    function handleFile(file) {
+      // Check if it's a video file
+      if (!file.type.startsWith('video/')) {
+        showStatus('Please select a valid video file', 'error');
+        return;
+      }
+
+      selectedFile = file;
+
+      // Show file info
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+      fileCard.style.display = 'block';
+
+      // Show video preview
+      const videoUrl = URL.createObjectURL(file);
+      previewVideo.src = videoUrl;
+      previewVideo.style.display = 'block';
+
+      // Enable convert button
+      convertBtn.disabled = false;
+
+      // Hide previous results
+      downloadSection.style.display = 'none';
+      status.style.display = 'none';
+    }
+
+    function showStatus(message, type) {
+      const iconMap = {
+        success: 'check_circle',
+        error: 'error',
+        info: 'info'
+      };
+      
+      status.innerHTML = `
+        <span class="material-icons">${iconMap[type]}</span>
+        ${message}
+      `;
+      status.className = `status ${type}`;
+      status.style.display = 'flex';
+    }
+
+    // Convert function using Canvas and MediaRecorder
+    convertBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      try {
+        convertBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        downloadSection.style.display = 'none';
+        recordedChunks = [];
+
+        showStatus('Preparing conversion...', 'info');
+        updateProgress(10);
+
+        // Create video element
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(selectedFile);
+        video.muted = true;
+
+        // Create canvas for re-encoding
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Wait for video metadata
+        await new Promise((resolve) => {
+          video.addEventListener('loadedmetadata', () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            resolve();
+          });
+        });
+
+        showStatus('Starting conversion...', 'info');
+        updateProgress(20);
+
+        // Create MediaRecorder with MP4 support
+        const stream = canvas.captureStream(30); // 30 fps
+
+        // Add audio track if available
+        if (selectedFile.type.includes('audio') || selectedFile.name.includes('audio')) {
+          try {
+            const audioContext = new AudioContext();
+            const source = audioContext.createMediaElementSource(video);
+            const dest = audioContext.createMediaStreamDestination();
+            source.connect(dest);
+
+            // Add audio tracks to stream
+            dest.stream.getAudioTracks().forEach(track => {
+              stream.addTrack(track);
+            });
+          } catch (e) {
+            console.log('Audio processing not available');
+          }
+        }
+
+        // Try different MP4 codecs
+        let mimeType = 'video/mp4';
+        if (MediaRecorder.isTypeSupported('video/mp4; codecs="avc1.424028, mp4a.40.2"')) {
+          mimeType = 'video/mp4; codecs="avc1.424028, mp4a.40.2"';
+        } else if (MediaRecorder.isTypeSupported('video/webm; codecs="vp8, vorbis"')) {
+          mimeType = 'video/webm; codecs="vp8, vorbis"';
+          showStatus('Converting to WebM format (MP4 not supported)', 'info');
+        }
+
+        mediaRecorder = new MediaRecorder(stream, {
+          mimeType: mimeType,
+          videoBitsPerSecond: 2500000 // 2.5 Mbps
+        });
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, {
+            type: mimeType.includes('mp4') ? 'video/mp4' : 'video/webm'
+          });
+          const url = URL.createObjectURL(blob);
+
+          downloadBtn.href = url;
+          const extension = mimeType.includes('mp4') ? '.mp4' : '.webm';
+          downloadBtn.download = selectedFile.name.replace(/\.[^/.]+$/, extension);
+
+          progressContainer.style.display = 'none';
+          downloadSection.style.display = 'block';
+          showStatus('Conversion completed successfully!', 'success');
+          convertBtn.disabled = false;
+          updateProgress(100);
+        };
+
+        // Start recording
+        mediaRecorder.start(100); // Collect data every 100ms
+
+        // Play and draw video frames
+        video.play();
+
+        let progress = 30;
+        const drawFrame = () => {
+          if (!video.paused && !video.ended) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Update progress based on video time
+            if (video.duration > 0) {
+              progress = 30 + (video.currentTime / video.duration) * 60;
+              updateProgress(progress);
+              progressText.innerHTML = `
+                <span class="material-icons spinner">autorenew</span>
+                Converting... ${Math.round(progress)}%
+              `;
+            }
+
+            requestAnimationFrame(drawFrame);
+          } else {
+            // Video ended, stop recording
+            mediaRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+          }
+        };
+
+        drawFrame();
+
+      } catch (error) {
+        console.error('Conversion error:', error);
+        showStatus(`Conversion failed: ${error.message}`, 'error');
+        progressContainer.style.display = 'none';
+        convertBtn.disabled = false;
+      }
+    });
+
+    function updateProgress(percent) {
+      progressFill.style.width = Math.min(percent, 100) + '%';
+    }
+
+    // Clean up URLs when page unloads
+    window.addEventListener('beforeunload', () => {
+      if (previewVideo.src) {
+        URL.revokeObjectURL(previewVideo.src);
+      }
+      if (downloadBtn.href) {
+        URL.revokeObjectURL(downloadBtn.href);
+      }
+    });
+  </script>
+</body>
+
+</html>
